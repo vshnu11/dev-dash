@@ -2,28 +2,39 @@ import streamlit as st
 from github import Github
 import os
 from dotenv import load_dotenv
+import pandas as pd
 
 load_dotenv()
-TOKEN = os.getenv("GITHUB_TOKEN")
-g = Github(TOKEN)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
-st.set_page_config(page_title="DevDash", layout="wide")
+g = Github(GITHUB_TOKEN)
 
-# Sidebar
-st.sidebar.title("DevDash")
-username = st.sidebar.text_input("Enter your GitHub username", "your-username")
+st.title("🔧 DevDash - GitHub Commit Viewer")
 
-# Main area
-st.title(f"Developer Dashboard for @{username}")
+repo_name = st.text_input("Enter a repository (e.g. torvalds/linux):")
 
-if username:
+if repo_name:
     try:
-        user = g.get_user(username)
-        st.subheader("🙍‍♂️ Basic Info")
-        st.write(f"Name: {username}")
-        st.write(f"Public repos: {user.public_repos}")
-        st.write(f"Followers: {user.followers}")
-        st.write(f"Following: {user.following}")
-    except:
-        st.error("Failed to fetch user info. Check username or token.") 
+        # Fetch repo
+        repo = g.get_repo(repo_name)
 
+        # Get latest 100 commits
+        commits = repo.get_commits()[:100]
+
+        st.subheader(f"Latest commits for {repo_name}")
+        for commit in commits:
+            author = commit.commit.author.name
+            message = commit.commit.message
+            date = commit.commit.author.date.strftime("%d-%m-%Y %H:%M:%S")
+            st.markdown(f"- **{author}**: {message} \n⌚ {date}")
+
+        # Commit activity chart
+        dates = [commit.commit.author.date.date() for commit in commits]
+        df = pd.DataFrame(dates, columns=["date"])
+        commit_counts = df["date"].value_counts().sort_index()
+
+        st.subheader("📈 Commit Activity (Last 100 Commits)")
+        st.bar_chart(commit_counts)
+
+    except Exception as e:
+        st.error(f"Error: {str(e)}")        
