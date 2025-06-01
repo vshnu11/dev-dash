@@ -1,20 +1,24 @@
 import streamlit as st
 import github_handler as gh
+import github.GithubException as GithubException
 
-if __name__ == "__main__":
-    st.title("🔧 DevDash - GitHub Commit Viewer")
-
-    # Sidebar
-    # st.sidebar.title("DevDash")
-
+def main():
+    st.title("🚀 DevDash - GitHub Activity Dashboard")
     user_name = st.text_input("Enter your GitHub username")
-    # submit = st.button("Submit")
 
     if user_name:
-        gh.get_overview(user_name)
+        try:
+            gh.get_overview(user_name)
+            repo_name = st.text_input("Enter a repository name if you want to see more details:")
+            
+            if repo_name:
+                with st.spinner("🔄 Fetching repository data..."):
+                    gh.fetch_commits(repo_name, user_name)
+                            
+        except GithubException as ge:
+            st.error(f"❗ GitHub API Error: {ge.status} - {ge.data.get('message', 'Unknown error')}")
+        except Exception as e:
+            st.error(f"❌ Unexpected Error: {e}")
 
-        # choice = st.radio("Do you want to see more details of any repository?", ["Yes", "No"], index=None)
-        repo_name = st.text_input("Enter a repository name if you want to see more details:")
-        
-        if repo_name:
-            gh.fetch_commits(repo_name, user_name)
+if __name__ == "__main__":
+    main()
