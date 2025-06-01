@@ -17,4 +17,8 @@ if __name__ == "__main__":
         repo_name = st.text_input("Enter a repository name if you want to see more details:")
         
         if repo_name:
-            gh.fetch_commits(repo_name, user_name)
+            with st.spinner("🔄 Fetching repository data..."):
+                try:
+                    gh.fetch_commits(repo_name, user_name)
+                except Exception as e:
+                    st.error(f"❌ Error: {e}")    
