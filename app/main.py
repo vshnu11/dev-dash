@@ -1,29 +1,20 @@
 import streamlit as st
-from github import Github
-import os
-from dotenv import load_dotenv
+import github_handler as gh
 
-load_dotenv()
-TOKEN = os.getenv("GITHUB_TOKEN")
-g = Github(TOKEN)
+if __name__ == "__main__":
+    st.title("🔧 DevDash - GitHub Commit Viewer")
 
-st.set_page_config(page_title="DevDash", layout="wide")
+    # Sidebar
+    # st.sidebar.title("DevDash")
 
-# Sidebar
-st.sidebar.title("DevDash")
-username = st.sidebar.text_input("Enter your GitHub username", "your-username")
+    user_name = st.text_input("Enter your GitHub username")
+    # submit = st.button("Submit")
 
-# Main area
-st.title(f"Developer Dashboard for @{username}")
+    if user_name:
+        gh.get_overview(user_name)
 
-if username:
-    try:
-        user = g.get_user(username)
-        st.subheader("🙍‍♂️ Basic Info")
-        st.write(f"Name: {username}")
-        st.write(f"Public repos: {user.public_repos}")
-        st.write(f"Followers: {user.followers}")
-        st.write(f"Following: {user.following}")
-    except:
-        st.error("Failed to fetch user info. Check username or token.") 
-
+        # choice = st.radio("Do you want to see more details of any repository?", ["Yes", "No"], index=None)
+        repo_name = st.text_input("Enter a repository name if you want to see more details:")
+        
+        if repo_name:
+            gh.fetch_commits(repo_name, user_name)

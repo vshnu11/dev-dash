@@ -5,7 +5,7 @@ import requests
 load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-USERNAME = "vshnu11"
+USERNAME = ""
 
 def get_repos():
     url = f"https://api.github.com/users/{USERNAME}/repos"
