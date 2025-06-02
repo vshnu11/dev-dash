@@ -22,10 +22,18 @@ def get_overview(user_name):
         col4.metric("🙎‍♀️🙎‍♀️ Following", user.following)
         st.markdown("---")
         return
+    
+def get_repos(user_name):
+    user = g.get_user(user_name)
+    repo_list = [repo.full_name for repo in user.get_repos()]
+    if not repo_list:
+        found = False
+    else:
+        found = True
+    return found, repo_list    
 
-def fetch_commits(repo_name, user_name):
+def fetch_commits(repo_name):
     if repo_name:
-        repo_name = f"{user_name}/{repo_name}"
         # Fetch repo
         repo = g.get_repo(repo_name)
 
