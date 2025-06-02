@@ -15,10 +15,12 @@ def main():
                 selected_repo = st.selectbox("📂 Choose a repository", repos)
                 if selected_repo:
                     with st.spinner("🔄 Fetching repository data..."):
-                        gh.fetch_commits(selected_repo)
+                        commits = gh.fetch_commits(selected_repo)
+                        gh.generate_activity_chart(commits)
+                        gh.get_top_contributors(commits)
             else:
                 st.info(f"⚠ No public repositories found for @{user_name}") 
-                                                   
+
         except GithubException as ge:
             st.error(f"❗ GitHub API Error: {ge.status} - {ge.data.get('message', 'Unknown error')}")
         except Exception as e:
