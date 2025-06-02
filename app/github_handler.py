@@ -11,6 +11,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 g = Github(GITHUB_TOKEN)
 
 def get_overview(user_name):
+    """Displays an overview of a GitHub profile"""
     if user_name:
         st.subheader(f"🙎‍♂️ Profile Overview of @{user_name}")
         user = g.get_user(user_name)
@@ -21,11 +22,23 @@ def get_overview(user_name):
         col3.metric("🙎‍♂️🙎‍♂️ Followers", user.followers)
         col4.metric("🙎‍♀️🙎‍♀️ Following", user.following)
         st.markdown("---")
-        return
+    
+    return
+    
+def get_repos(user_name):
+    """Fetches the public repositories of a user."""
+    user = g.get_user(user_name)
+    repo_list = [repo.full_name for repo in user.get_repos()]
+    if not repo_list:
+        found = False
+    else:
+        found = True
 
-def fetch_commits(repo_name, user_name):
+    return found, repo_list    
+
+def fetch_commits(repo_name):
+    """Fetches recent commits in a repository and display it with details."""
     if repo_name:
-        repo_name = f"{user_name}/{repo_name}"
         # Fetch repo
         repo = g.get_repo(repo_name)
 
@@ -40,33 +53,42 @@ def fetch_commits(repo_name, user_name):
             st.markdown(f"- **{author}**: {message} \n⌚ {date}")
         st.markdown("---")
 
-        # Commit activity chart
-        dates = [commit.commit.author.date.date() for commit in commits]
-        df = pd.DataFrame(dates, columns=["date"])
-        commit_counts = df["date"].value_counts().sort_index()
+    return commits
+    
+def generate_activity_chart(commits):
+    """Generates a commit activity chart."""
+    # Commit activity chart
+    dates = [commit.commit.author.date.date() for commit in commits]
+    df = pd.DataFrame(dates, columns=["date"])
+    commit_counts = df["date"].value_counts().sort_index()
 
-        st.subheader("📈 Commit Activity (Last 25 Commits)")
-        st.bar_chart(commit_counts)
-        st.markdown("---")
+    st.subheader("📈 Commit Activity (Last 25 Commits)")
+    st.bar_chart(commit_counts)
+    st.markdown("---")   
 
-        # Count commits per contributor login
-        author_counts = defaultdict(int)
-        for commit in commits:
-            if commit.author:
-                login = commit.author.login
-                author_counts[login] += 1
+    return 
 
-        # Build DataFrame with contributor links
-        data = []
-        for login, count in author_counts.items():
-            profile_url = f"https://github.com/{login}"
-            data.append((f"[{login}]({profile_url})", count))
+def get_top_contributors(commits):
+    """Counts commit per contributor and list the top contributors with link to their profiles and no. of commits."""
+    # Count commits per contributor login
+    author_counts = defaultdict(int)
+    for commit in commits:
+        if commit.author:
+            login = commit.author.login
+            author_counts[login] += 1
 
-        author_df = pd.DataFrame(data, columns=["Contributor", "Commits"])
-        author_df = author_df.sort_values(by="Commits", ascending=False)
+    # Build DataFrame with contributor links
+    data = []
+    for login, count in author_counts.items():
+        profile_url = f"https://github.com/{login}"
+        data.append((f"[{login}]({profile_url})", count))
 
-        # Show in Streamlit
-        st.subheader("🙎‍♂️🙎‍♂️ Top Contributors (Last 25 Commits)")
-        for index, row in author_df.iterrows():
-            st.markdown(f"- {row['Contributor']} - **{row['Commits']}** commits")
-        return
+    author_df = pd.DataFrame(data, columns=["Contributor", "Commits"])
+    author_df = author_df.sort_values(by="Commits", ascending=False)
+
+    # Show in Streamlit
+    st.subheader("🙎‍♂️🙎‍♂️ Top Contributors (Last 25 Commits)")
+    for index, row in author_df.iterrows():
+        st.markdown(f"- {row['Contributor']} - **{row['Commits']}** commits")
+
+    return    
